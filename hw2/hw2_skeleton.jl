@@ -54,12 +54,20 @@ function GenerateObservation(𝒫::POMDPscenario, x::Array{Float64, 1})
       =#
 end   
 
+# ron - a helper function for 2.a
+function GenerateRelativeObservation(x::Array{Float64, 1}, x_b::Array{Float64, 1}, r::Float64, rmin::Float64, )::Array{Float64, 1}
+    Σv = 0.01*max(r, rmin)*[1.0 0.0; 0.0 1.0]
+    rel_loc = x_b - x
+    noise = MvNormal([0.0, 0.0], Σv) # generate white noise with covariance Σv and zero mean
+    return rel_loc + noise
+end
+
 
 function GenerateObservationFromBeacons(𝒫::POMDPscenario, x::Array{Float64, 1})::Union{NamedTuple, Nothing}
-    distances = # calculate distances from x to all beacons
+    distances = [norm(x-beacon) for beacon in 𝒫.beacons] #Ron - consider broadcasting approach
     for (index, distance) in enumerate(distances)
         if distance <= 𝒫.d
-            obs = # add your code for creating observation here 
+            obs = GenerateRelativeObservation(x, 𝒫.beacons[:, index], distance, 𝒫.rmin)
             return (obs=obs, index=index) 
         end    
     end 
