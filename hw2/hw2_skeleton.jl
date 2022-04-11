@@ -84,7 +84,7 @@ function main()
     d =1.0 
     rmin = 0.1
     # set beacons locations 
-    beacons =  # define array with beacons
+    beacons =  transpose([0 0; 0 4; 0 8; 4 0; 4 4; 8 4; 0 8; 4 8; 8 8])
     𝒫 = POMDPscenario(F=[1.0 0.0; 0.0 1.0],
                       Σw=0.1^2*[1.0 0.0; 0.0 1.0],
                       Σv=0.01^2*[1.0 0.0; 0.0 1.0], 
