@@ -22,26 +22,27 @@ function PropagateBelief(b::FullNormal, 𝒫::POMDPscenario, a::Array{Float64, 1
     F  = 𝒫.F
     Σw, Σv = 𝒫.Σw, 𝒫.Σv
     # predict
-    μp = # add your code here 
-    Σp = # add your code here 
+    μp = (F * μb) + a    
+    Σp = (F * Σw * transpose(F)) + Σw  
     return MvNormal(μp, Σp)
 end 
 
 
 
 function PropagateUpdateBelief(b::FullNormal, 𝒫::POMDPscenario, a::Array{Float64, 1}, o::Array{Float64, 1})::FullNormal
-    μb, Σb = b.μ, b.Σ
+    μ_t, Σ_t = b.μ, b.Σ
     F  = 𝒫.F
     Σw, Σv = 𝒫.Σw, 𝒫.Σv
     # predict
-    μp = # add your code here
-    Σp = # add your code here
+    _μ_t = (F * μ_t) + a
+    _Σ_t = (F * Σw_t * transpose(F)) + Σw_t  
     # update
-    #=  add your code here
-    μb′ = 
-    Σb′ = 
-    =#
-    return MvNormal(μb′, Σb′)
+    k_t = _Σ_t * inv(Σ_t + Σv)      
+    μ_t_1 = _μ_t + (k_t *(o - _μ_t))
+    I = ones(Int8, (2, 3)) 
+    Σb_t_1 = (I - k_t) * _Σ_t 
+    #
+    return MvNormal(μ_t_1, Σb_t_1)
 end    
 
 function SampleMotionModel(𝒫::POMDPscenario, a::Array{Float64, 1}, x::Array{Float64, 1})
