@@ -46,13 +46,13 @@ function PropagateUpdateBelief(b::FullNormal, 𝒫::POMDPscenario, a::Array{Floa
 end    
 
 function SampleMotionModel(𝒫::POMDPscenario, a::Array{Float64, 1}, x::Array{Float64, 1})
-    #=  add your code here
-    =#
+    w = MvNormal([0.0, 0.0], 𝒫.Σw).rand
+    return 𝒫.F*x + a + w
 end 
 
 function GenerateObservation(𝒫::POMDPscenario, x::Array{Float64, 1})
-      #=  add your code here
-      =#
+    v = MvNormal([0.0, 0.0], 𝒫.Σv).rand
+    return x + v
 end   
 
 # ron - a helper function for 2.a
