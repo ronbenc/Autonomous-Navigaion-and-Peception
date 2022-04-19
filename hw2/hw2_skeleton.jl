@@ -60,13 +60,13 @@ end
 function GenerateRelativeObservation(x::Array{Float64, 1}, x_b::Array{Float64, 1}, r::Float64, rmin::Float64, )::Array{Float64, 1}
     Σv = 0.01*max(r, rmin)*[1.0 0.0; 0.0 1.0]
     rel_loc = x_b - x
-    noise = MvNormal([0.0, 0.0], Σv) # generate white noise with covariance Σv and zero mean
+    noise = rand(MvNormal([0.0, 0.0], Σv)) # generate white noise with covariance Σv and zero mean
     return rel_loc + noise
 end
 
 
 function GenerateObservationFromBeacons(𝒫::POMDPscenario, x::Array{Float64, 1})::Union{NamedTuple, Nothing}
-    distances = [norm(x-beacon) for beacon in 𝒫.beacons] #Ron - consider broadcasting approach
+    distances = [norm(x - 𝒫.beacons[:, i]) for i in range(1, length=size(𝒫.beacons, 2))]
     for (index, distance) in enumerate(distances)
         if distance <= 𝒫.d
             obs = GenerateRelativeObservation(x, 𝒫.beacons[:, index], distance, 𝒫.rmin)
