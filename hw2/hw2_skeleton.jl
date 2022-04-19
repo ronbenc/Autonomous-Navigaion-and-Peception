@@ -23,35 +23,36 @@ function PropagateBelief(b::FullNormal, 𝒫::POMDPscenario, a::Array{Float64, 1
     Σw, Σv = 𝒫.Σw, 𝒫.Σv
     # predict
     μp = (F * μb) + a    
-    Σp = (F * Σw * transpose(F)) + Σw  
+    Σp = (F * Σb * transpose(F)) + Σw  
     return MvNormal(μp, Σp)
 end 
 
 
 
 function PropagateUpdateBelief(b::FullNormal, 𝒫::POMDPscenario, a::Array{Float64, 1}, o::Array{Float64, 1})::FullNormal
-    μ_t, Σ_t = b.μ, b.Σ
+    μb, Σb = b.μ, b.Σ
     F  = 𝒫.F
     Σw, Σv = 𝒫.Σw, 𝒫.Σv
     # predict
-    _μ_t = (F * μ_t) + a
-    _Σ_t = (F * Σw_t * transpose(F)) + Σw_t  
+    mv = PropagateBelief(b,𝒫,a)
+    μp = mv.μ
+    Σp = mv.Σ
     # update
-    k_t = _Σ_t * inv(Σ_t + Σv)      
-    μ_t_1 = _μ_t + (k_t *(o - _μ_t))
-    I = ones(Int8, (2, 3)) 
-    Σb_t_1 = (I - k_t) * _Σ_t 
+    k = Σp * inv(Σp + Σv)      
+    μb′ = μp + (k *(o - μp))
+    I = UniformScaling(1)
+    Σb′ = (I - k) * Σp 
     #
-    return MvNormal(μ_t_1, Σb_t_1)
+    return MvNormal(μb′, Σb′)
 end    
 
 function SampleMotionModel(𝒫::POMDPscenario, a::Array{Float64, 1}, x::Array{Float64, 1})
-    w = MvNormal([0.0, 0.0], 𝒫.Σw).rand
+    w = rand(MvNormal([0.0, 0.0], 𝒫.Σw))
     return 𝒫.F*x + a + w
 end 
 
 function GenerateObservation(𝒫::POMDPscenario, x::Array{Float64, 1})
-    v = MvNormal([0.0, 0.0], 𝒫.Σv).rand
+    v = rand(MvNormal([0.0, 0.0], 𝒫.Σv))
     return x + v
 end   
 
