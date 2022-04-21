@@ -266,7 +266,7 @@ function part2()
     plot!(square_root_trace_fixed, label= "square root of trace of fixed covariance")
     savefig(plt, "fixed_vs_not_fixed_sqrt_of_trace.pdf")
 
-    # clause d
+    # clause d.1
     N = 10
     A = [[0.1, 0.1*(j/5)] for j in 1:N]
 
@@ -288,7 +288,49 @@ function part2()
         scatter!([x[1] for x in traj[i]], [x[2] for x in traj[i]], label="gt" * string(i))
     end
     savefig(multi_tr,"multi_tr.pdf")
-        
+
+
+    # clause d.2
+    beliefs = []
+    for i in 1:N
+        # generate observation trajectory
+        τobsbeacons = []
+        for j in 1:T
+            push!(τobsbeacons, GenerateObservationFromBeacons(𝒫, traj[i][j], false))
+        end 
+
+        # generate posteriors 
+        τb = [b0]
+        for j in 1:T-1
+            if isnothing(τobsbeacons[j+1])
+                push!(τb, PropagateBelief(τb[end],  𝒫, A[i])) 
+            else
+                push!(τb, PropagateUpdateBelief(τb[end],  𝒫, A[i], τobsbeacons[j+1][1])) 
+            end
+        end
+
+        push!(beliefs, τb)
+    end
+
+    # evaluate info theoretic costs
+    cull_IT_costs = []
+    for i in 1:N
+        cullmative_cost = 0
+        for t in 1:T
+            cullmative_cost += det(beliefs[i][t].Σ)
+        end
+        push!(cull_IT_costs, cullmative_cost)
+    end
+    
+    plt = bar(1:N, cull_IT_costs, label = "", xlabel="trajectory index", ylabel="cullmative cost")
+    savefig(plt, "cull_IT_costsVSidx.pdf")
+    
+    last_IT_costs = [det(bel[end].Σ) for bel in beliefs]
+    plt = bar(1:N, last_IT_costs, label = "", xlabel="trajectory index", ylabel="last state cost")
+    savefig(plt, "last_IT_costsVSidx.pdf")
+
+    
+    # The best action sequence is a_5 because it maxim
 end
 
 function main()
