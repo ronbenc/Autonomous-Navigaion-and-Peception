@@ -173,7 +173,7 @@ function part2()
     # generate observation trajectory
     τobsbeacons = []
     for i in 1:T
-        push!(τobsbeacons, GenerateObservationFromBeacons(𝒫, τ[i], true))
+        push!(τobsbeacons, GenerateObservationFromBeacons(𝒫, τ[i], false))
     end 
 
     # generate beliefs dead reckoning 
@@ -183,14 +183,14 @@ function part2()
         push!(τbp, PropagateBelief(τbp[end],  𝒫, ak))
     end
 
-    # Ron - what if no observation???
+
     # generate posteriors 
-    τb = [b0]
+    τb_not_fixed = [b0]
     for i in 1:T-1
         if isnothing(τobsbeacons[i+1])
-            push!(τb, PropagateBelief(τb[end],  𝒫, ak)) 
+            push!(τb_not_fixed, PropagateBelief(τb_not_fixed[end],  𝒫, ak)) 
         else
-            push!(τb, PropagateUpdateBelief(τb[end],  𝒫, ak, τobsbeacons[i+1][1])) 
+            push!(τb_not_fixed, PropagateUpdateBelief(τb_not_fixed[end],  𝒫, ak, τobsbeacons[i+1][1])) 
         end
     end
     
@@ -204,46 +204,54 @@ function part2()
     savefig(dr2, "dr2.pdf")
     
     # Ron - what if no observation???
-    tr2=scatter([x[1] for x in τ], [x[2] for x in τ], label="gt")
+    tr2notfixed=scatter([x[1] for x in τ], [x[2] for x in τ], label="gt")
     for i in 1:T
-        covellipse!(τb[i].μ, τb[i].Σ, showaxes=true, n_std=3, label="step $i")
+        covellipse!(τb_not_fixed[i].μ, τb_not_fixed[i].Σ, showaxes=true, n_std=3, label="step $i")
     end
     scatter!(beacons[:, 1], beacons[:, 2], label="beacons", markershape=:utriangle)
-    savefig(tr2,"tr2.pdf")
+    savefig(tr2notfixed,"tr2notfixed.pdf")
 
 
     # clause c.2
     # generate observation trajectory
     τobsbeacons = []
     for i in 1:T
-        push!(τobsbeacons, GenerateObservationFromBeacons(𝒫, τ[i], false))
+        push!(τobsbeacons, GenerateObservationFromBeacons(𝒫, τ[i], true))
     end 
 
     # generate posteriors 
-    τb = [b0]
+    τb_fixed = [b0]
     for i in 1:T-1
         if isnothing(τobsbeacons[i+1])
-            push!(τb, PropagateBelief(τb[end],  𝒫, ak)) 
+            push!(τb_fixed, PropagateBelief(τb_fixed[end],  𝒫, ak)) 
         else
-            push!(τb, PropagateUpdateBelief(τb[end],  𝒫, ak, τobsbeacons[i+1][1])) 
+            push!(τb_fixed, PropagateUpdateBelief(τb_fixed[end],  𝒫, ak, τobsbeacons[i+1][1])) 
         end
     end
     
     # plots 
-    dr3=scatter([x[1] for x in τ], [x[2] for x in τ], label="gt")
-    for i in 1:T
-        covellipse!(τbp[i].μ, τbp[i].Σ, showaxes=true, n_std=3, label="step $i")
-    end
-    scatter!(beacons[:, 1], beacons[:, 2], label="beacons", markershape=:utriangle)
-    savefig(dr3, "dr3.pdf")
     
     # Ron - what if no observation???
-    tr3=scatter([x[1] for x in τ], [x[2] for x in τ], label="gt")
+    tr2fixed=scatter([x[1] for x in τ], [x[2] for x in τ], label="gt")
     for i in 1:T
-        covellipse!(τb[i].μ, τb[i].Σ, showaxes=true, n_std=3, label="step $i")
+        covellipse!(τb_fixed[i].μ, τb_fixed[i].Σ, showaxes=true, n_std=3, label="step $i")
     end
     scatter!(beacons[:, 1], beacons[:, 2], label="beacons", markershape=:utriangle)
-    savefig(tr3,"tr3.pdf")
+    savefig(tr2fixed,"tr2fixed.pdf")
+
+    # clause c.3
+    # graph for not-fixed
+    not_fixed_error = []
+    fixed_error = []
+    for i in 1:T-1
+        push!(not_fixed_error, norm(τ[i]-τb_not_fixed[i].μ)) 
+        push!(fixed_error, norm(τ[i]-τb_fixed[i].μ))
+    end
+
+    plt = plot(; xlabel="Time", ylabel="Error", grid=:true, legend=:outertopright, legendfont=font(5))
+    plot!(not_fixed_error, label= "not fixed covariance error")
+    plot!(fixed_error, label= "fixed covariance error")
+    savefig(plt, "fixed_vs_not_fixed_error.pdf")
 
 end
 
