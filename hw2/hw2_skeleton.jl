@@ -57,19 +57,23 @@ function GenerateObservation(𝒫::POMDPscenario, x::Array{Float64, 1})
 end   
 
 # ron - a helper function for 2.a
-function GenerateRelativeObservation(x::Array{Float64, 1}, x_b::Array{Float64, 1}, r::Float64, rmin::Float64, )::Array{Float64, 1}
-    Σv = 0.01*max(r, rmin)*[1.0 0.0; 0.0 1.0]
+function GenerateRelativeObservation(x::Array{Float64, 1}, x_b::Array{Float64, 1}, r::Float64, rmin::Float64, fixed::Bool)::Array{Float64, 1}
+    if fixed == true
+        Σv = 0.01^2*[1.0 0.0; 0.0 1.0]
+    else
+        Σv = 0.01*max(r, rmin)*[1.0 0.0; 0.0 1.0]
+    end
     rel_loc = x
     noise = rand(MvNormal([0.0, 0.0], Σv)) # generate white noise with covariance Σv and zero mean
     return rel_loc + noise
 end
 
 
-function GenerateObservationFromBeacons(𝒫::POMDPscenario, x::Array{Float64, 1})::Union{NamedTuple, Nothing}
+function GenerateObservationFromBeacons(𝒫::POMDPscenario, x::Array{Float64, 1}, fixed::Bool)::Union{NamedTuple, Nothing}
     distances = [norm(x - 𝒫.beacons[i, :]) for i in range(1, length=size(𝒫.beacons, 1))]
     for (index, distance) in enumerate(distances)
         if distance <= 𝒫.d
-            obs = GenerateRelativeObservation(x, 𝒫.beacons[index, :], distance, 𝒫.rmin)
+            obs = GenerateRelativeObservation(x, 𝒫.beacons[index, :], distance, 𝒫.rmin, fixed)
             return (obs=obs, index=index) 
         end    
     end 
@@ -169,10 +173,8 @@ function part2()
     # generate observation trajectory
     τobsbeacons = []
     for i in 1:T
-        push!(τobsbeacons, GenerateObservationFromBeacons(𝒫, τ[i]))
+        push!(τobsbeacons, GenerateObservationFromBeacons(𝒫, τ[i], true))
     end 
-
-    println(τobsbeacons)
 
     # generate beliefs dead reckoning 
     τbp = [b0]
@@ -208,6 +210,40 @@ function part2()
     end
     scatter!(beacons[:, 1], beacons[:, 2], label="beacons", markershape=:utriangle)
     savefig(tr2,"tr2.pdf")
+
+
+    # clause c.2
+    # generate observation trajectory
+    τobsbeacons = []
+    for i in 1:T
+        push!(τobsbeacons, GenerateObservationFromBeacons(𝒫, τ[i], false))
+    end 
+
+    # generate posteriors 
+    τb = [b0]
+    for i in 1:T-1
+        if isnothing(τobsbeacons[i+1])
+            push!(τb, PropagateBelief(τb[end],  𝒫, ak)) 
+        else
+            push!(τb, PropagateUpdateBelief(τb[end],  𝒫, ak, τobsbeacons[i+1][1])) 
+        end
+    end
+    
+    # plots 
+    dr3=scatter([x[1] for x in τ], [x[2] for x in τ], label="gt")
+    for i in 1:T
+        covellipse!(τbp[i].μ, τbp[i].Σ, showaxes=true, n_std=3, label="step $i")
+    end
+    scatter!(beacons[:, 1], beacons[:, 2], label="beacons", markershape=:utriangle)
+    savefig(dr3, "dr3.pdf")
+    
+    # Ron - what if no observation???
+    tr3=scatter([x[1] for x in τ], [x[2] for x in τ], label="gt")
+    for i in 1:T
+        covellipse!(τb[i].μ, τb[i].Σ, showaxes=true, n_std=3, label="step $i")
+    end
+    scatter!(beacons[:, 1], beacons[:, 2], label="beacons", markershape=:utriangle)
+    savefig(tr3,"tr3.pdf")
 
 end
 
