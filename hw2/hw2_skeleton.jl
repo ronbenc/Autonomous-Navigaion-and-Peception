@@ -243,7 +243,7 @@ function part2()
     # graph for not-fixed
     not_fixed_error = []
     fixed_error = []
-    for i in 1:T-1
+    for i in 1:T
         push!(not_fixed_error, norm(τ[i]-τb_not_fixed[i].μ)) 
         push!(fixed_error, norm(τ[i]-τb_fixed[i].μ))
     end
@@ -252,6 +252,19 @@ function part2()
     plot!(not_fixed_error, label= "not fixed covariance error")
     plot!(fixed_error, label= "fixed covariance error")
     savefig(plt, "fixed_vs_not_fixed_error.pdf")
+
+    # clause c.4
+    square_root_trace_not_fixed = []
+    square_root_trace_fixed = []
+    for i in 1:T
+        push!(square_root_trace_not_fixed, sqrt(tr(τb_not_fixed[i].Σ))) 
+        push!(square_root_trace_fixed, sqrt(tr(τb_fixed[i].Σ)))
+    end
+
+    plt = plot(; xlabel="Time", ylabel="square root of trace of est cov", grid=:true, legend=:outertopright, legendfont=font(5))
+    plot!(square_root_trace_not_fixed, label= "square root of trace of not fixed covariance")
+    plot!(square_root_trace_fixed, label= "square root of trace of fixed covariance")
+    savefig(plt, "fixed_vs_not_fixed_sqrt_of_trace.pdf")
 
 end
 
