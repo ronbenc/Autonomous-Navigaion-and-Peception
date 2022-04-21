@@ -35,9 +35,6 @@ function PropagateUpdateBelief(b::FullNormal, 𝒫::POMDPscenario, a::Array{Floa
     Σw, Σv = 𝒫.Σw, 𝒫.Σv
     # predict
     mv = PropagateBelief(b,𝒫,a)
-    if(o === nothing) # no observation
-        return mv
-    end
     μp = mv.μ
     Σp = mv.Σ
     # update
@@ -185,11 +182,15 @@ function part2()
     end
 
     # Ron - what if no observation???
-    #generate posteriors 
-    # τb = [b0]
-    # for i in 1:T-1
-    #     push!(τb, PropagateUpdateBelief(τb[end],  𝒫, ak, τobsbeacons[i+1])) 
-    # end
+    # generate posteriors 
+    τb = [b0]
+    for i in 1:T-1
+        if isnothing(τobsbeacons[i+1])
+            push!(τb, PropagateBelief(τb[end],  𝒫, ak)) 
+        else
+            push!(τb, PropagateUpdateBelief(τb[end],  𝒫, ak, τobsbeacons[i+1][1])) 
+        end
+    end
     
     # plots 
     dr2=scatter([x[1] for x in τ], [x[2] for x in τ], label="gt")
@@ -197,14 +198,16 @@ function part2()
         covellipse!(τbp[i].μ, τbp[i].Σ, showaxes=true, n_std=3, label="step $i")
     end
     # savefig([dr2, bplot], "dr2.pdf") Ron -how to combine two scatters???
+    scatter!(beacons[:, 1], beacons[:, 2], label="beacons", markershape=:utriangle)
     savefig(dr2, "dr2.pdf")
     
     # Ron - what if no observation???
-    # tr2=scatter([x[1] for x in τ], [x[2] for x in τ], label="gt")
-    # for i in 1:T
-    #     covellipse!(τb[i].μ, τb[i].Σ, showaxes=true, n_std=3, label="step $i")
-    # end
-    # savefig(tr2,"tr.pdf")
+    tr2=scatter([x[1] for x in τ], [x[2] for x in τ], label="gt")
+    for i in 1:T
+        covellipse!(τb[i].μ, τb[i].Σ, showaxes=true, n_std=3, label="step $i")
+    end
+    scatter!(beacons[:, 1], beacons[:, 2], label="beacons", markershape=:utriangle)
+    savefig(tr2,"tr2.pdf")
 
 end
 
