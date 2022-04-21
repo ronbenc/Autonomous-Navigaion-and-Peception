@@ -266,6 +266,29 @@ function part2()
     plot!(square_root_trace_fixed, label= "square root of trace of fixed covariance")
     savefig(plt, "fixed_vs_not_fixed_sqrt_of_trace.pdf")
 
+    # clause d
+    N = 10
+    A = [[0.1, 0.1*(j/5)] for j in 1:N]
+
+    traj = []
+    for ak in A
+         # generating the trajectory
+        τ = [xgt0]
+
+        # generate motion trajectory
+        for i in 1:T-1
+            push!(τ, SampleMotionModel(𝒫, ak, τ[end]))
+        end 
+
+        push!(traj, τ)
+    end
+
+    multi_tr = scatter(beacons[:, 1], beacons[:, 2], label="beacons", markershape=:utriangle)
+    for i in 1:N
+        scatter!([x[1] for x in traj[i]], [x[2] for x in traj[i]], label="gt" * string(i))
+    end
+    savefig(multi_tr,"multi_tr.pdf")
+        
 end
 
 function main()
