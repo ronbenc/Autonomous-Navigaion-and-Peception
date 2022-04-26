@@ -195,19 +195,21 @@ function part2()
     end
     
     # plots 
-    dr2=scatter([x[1] for x in τ], [x[2] for x in τ], label="gt")
+    dr2 = scatter()
     for i in 1:T
         covellipse!(τbp[i].μ, τbp[i].Σ, showaxes=true, n_std=3, label="step $i")
     end
     # savefig([dr2, bplot], "dr2.pdf") Ron -how to combine two scatters???
+    scatter!([x[1] for x in τ], [x[2] for x in τ], label="gt")
     scatter!(beacons[:, 1], beacons[:, 2], label="beacons", markershape=:utriangle)
     savefig(dr2, "dr2.pdf")
     
     # Ron - what if no observation???
-    tr2notfixed=scatter([x[1] for x in τ], [x[2] for x in τ], label="gt")
+    tr2notfixed = scatter()
     for i in 1:T
         covellipse!(τb_not_fixed[i].μ, τb_not_fixed[i].Σ, showaxes=true, n_std=3, label="step $i")
     end
+    scatter!([x[1] for x in τ], [x[2] for x in τ], label="gt")
     scatter!(beacons[:, 1], beacons[:, 2], label="beacons", markershape=:utriangle)
     savefig(tr2notfixed,"tr2notfixed.pdf")
 
@@ -232,10 +234,11 @@ function part2()
     # plots 
     
     # Ron - what if no observation???
-    tr2fixed=scatter([x[1] for x in τ], [x[2] for x in τ], label="gt")
+    tr2fixed = scatter()
     for i in 1:T
         covellipse!(τb_fixed[i].μ, τb_fixed[i].Σ, showaxes=true, n_std=3, label="step $i")
     end
+    scatter!([x[1] for x in τ], [x[2] for x in τ], label="gt")
     scatter!(beacons[:, 1], beacons[:, 2], label="beacons", markershape=:utriangle)
     savefig(tr2fixed,"tr2fixed.pdf")
 
