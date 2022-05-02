@@ -161,18 +161,19 @@ class PRM(object):
         if not str(node) in self.forest.keys():
             self.forest[str(node)] = []
 
-        nearest_neighbor = self._nearest_neighbors(node)
+        nearest_neighbor_list = self._nearest_neighbors(node)
 
         # nearest not dont exist
-        if nearest_neighbor is None:
+        if len(nearest_neighbor_list) == 0:
             return True
 
-        # add node
-        self.forest[str(node)].append(str(nearest_neighbor))
+        # add node to the forest
+        for neighbor in nearest_neighbor_list:
+            self.forest[str(node)].append(str(neighbor))
 
-        if not str(nearest_neighbor) in self.forest[str(nearest_neighbor)]:
-            self.forest[str(nearest_neighbor)] = []
-        self.forest[str(nearest_neighbor)].append(str(node))
+        # if not str(nearest_neighbor) in self.forest[str(nearest_neighbor)]:
+        #    self.forest[str(nearest_neighbor)] = []
+        # self.forest[str(nearest_neighbor)].append(str(node))
 
         return True
 
@@ -194,12 +195,12 @@ class PRM(object):
 
 
 
-    def _nearest_neighbors(self, node:Node) -> Node:
+    def _nearest_neighbors(self, node:Node) -> list:
 
         # TODO How do I prevent the passage of an
         #  edge within an area that must not be crossed?
         min_distance = np.Inf
-        nearest_neighbor = None
+        nearest_neighbor = []
         for neighbor in self.forest.keys():
             neighbor_x_pos = neighbor.split('_')[0]
             neighbor_y_pos = neighbor.split('_')[1]
@@ -213,16 +214,17 @@ class PRM(object):
                 # continue to the next neighbor
                 continue
             # check distance
-            if distance < min_distance and distance != 0 and distance < self.thd:
-                min_distance = distance
-                nearest_neighbor = neighbor
+            if distance < self.thd and distance!=0:
+                nearest_neighbor.append(neighbor)
+                # min_distance = distance
+                # nearest_neighbor = neighbor
 
         return nearest_neighbor
 
 def GeneratePRM(thd:float,nodes:int,obstacles_list:list):
 
     # create nodes
-    prm_model = PRM(thd=20, nodes_number=100, obstacles_list=obstacles_list)
+    prm_model = PRM(thd=50, nodes_number=100, obstacles_list=obstacles_list)
     num_nodes_added = 0
     while True:
         x_pos = random.uniform(X_LIMIT_LEFT, X_LIMIT_RIGHT)
