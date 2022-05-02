@@ -4,6 +4,12 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Rectangle
+import shapely
+from shapely.geometry import LineString, Point
+
+
+
+
 random.seed(20)
 X_LIMIT_LEFT = 0
 X_LIMIT_RIGHT = 300
@@ -35,14 +41,41 @@ class Obstacle(object):
             self.x_right = x_left + X_Obs
             self.y_right = y_left + Y_Obs
 
+    def _get_left_button(self):
+        return (self.x_left, self.y_left)
+
+    def _get_right_button(self):
+        return (self.x_right, self.y_right)
+
+    def _get_left_up(self):
+        return (self.x_left, self.y_right)
+
+    def _get_right_up(self):
+        return (self.x_right, self.y_right)
+
+    def get_lines(self) -> list:
+        """
+        :return: list of lines
+        """
+        line_1 = LineString([self._get_left_button(), self._get_right_button()])
+        line_2 = LineString([self._get_right_button(), self._get_right_up()])
+        line_3 = LineString([self._get_right_up(), self._get_left_up()])
+        line_4 = LineString([self._get_left_up(), self._get_left_button()])
+        return [line_1, line_2, line_3, line_4]
+
+
+
 class Node(object):
     def __init__(self, x_pos, y_pos):
         self.x_pos = x_pos
         self.y_pos = y_pos
         # self.near_node = None
 
-
-
+    def point(self):
+        """
+        :return: (x,y)
+        """
+        return (self.x_pos, self.y_pos)
 
     def __str__(self):
         return f'{self.x_pos}_{self.y_pos}'
@@ -117,7 +150,7 @@ class PRM(object):
 
 
 
-    def add_node(self,node:Node)->bool:
+    def add_node(self,node:Node) -> bool:
         # check if the node not in "bad" area
         for obstacle in self.obstacles_list:
             if (obstacle.x_left <= node.x_pos <= obstacle.x_right and
@@ -143,6 +176,24 @@ class PRM(object):
 
         return True
 
+    def _check_reachable(self,node, neighbor):
+        # create line from node to neighbor
+        line = LineString([(0, 0), (1, 1)])
+        other = LineString([(0, 1), (1, 0)])
+        print(line.intersects(other))
+
+        line_node_neighbor = LineString([node.point(), neighbor.point()])
+        for obstacle in self.obstacles_list:
+            for line in obstacle.get_lines():
+                if line_node_neighbor.intersects(line):
+                    # lines are intersects somewhere
+                    print('lines are interpolate')
+                    return False
+
+        return True
+
+
+
     def _nearest_neighbors(self, node:Node) -> Node:
 
         # TODO How do I prevent the passage of an
@@ -150,10 +201,19 @@ class PRM(object):
         min_distance = np.Inf
         nearest_neighbor = None
         for neighbor in self.forest.keys():
-            distance_x = (node.x_pos - float(neighbor.split('_')[0]))**2
-            distance_y = (node.y_pos - float(neighbor.split('_')[1]))**2
+            neighbor_x_pos = neighbor.split('_')[0]
+            neighbor_y_pos = neighbor.split('_')[1]
+            distance_x = (node.x_pos - float(neighbor_x_pos))**2
+            distance_y = (node.y_pos - float(neighbor_y_pos))**2
             distance = (distance_x + distance_y)**0.5
-            if distance < min_distance and distance != 0 and distance< self.thd:
+
+            # check reaching
+            reachable = self._check_reachable(node, Node(float(neighbor_x_pos), float(neighbor_y_pos)))
+            if not reachable:
+                # continue to the next neighbor
+                continue
+            # check distance
+            if distance < min_distance and distance != 0 and distance < self.thd:
                 min_distance = distance
                 nearest_neighbor = neighbor
 
@@ -189,7 +249,7 @@ def draw_configurations():
         obstacles_list.append(obstacle)
 
 
-    GeneratePRM(thd=20, nodes=100, obstacles_list=obstacles_list)
+    GeneratePRM(thd=200, nodes=100, obstacles_list=obstacles_list)
 
 
 if __name__ == '__main__':
