@@ -87,6 +87,7 @@ class PRM(object):
         self.thd = thd
         self.nodes_number = nodes_number
         self.forest = dict()
+
         self.obstacles_list = obstacles_list
 
     def plot_obstacles(self):
@@ -194,9 +195,9 @@ class PRM(object):
 
     def _check_reachable(self,node, neighbor):
         # create line from node to neighbor
-        line = LineString([(0, 0), (1, 1)])
-        other = LineString([(0, 1), (1, 0)])
-        print(line.intersects(other))
+        #line = LineString([(0, 0), (1, 1)])
+        #other = LineString([(0, 1), (1, 0)])
+        # print(line.intersects(other))
 
         line_node_neighbor = LineString([node.point(), neighbor.point()])
         for obstacle in self.obstacles_list:
@@ -237,7 +238,7 @@ class PRM(object):
 def GeneratePRM(thd:float,nodes:int,obstacles_list:list):
 
     # create nodes
-    prm_model = PRM(thd=50, nodes_number=100, obstacles_list=obstacles_list)
+    prm_model = PRM(thd=thd, nodes_number=100, obstacles_list=obstacles_list)
     num_nodes_added = 0
     while True:
         x_pos = random.randint(X_LIMIT_LEFT, X_LIMIT_RIGHT)
@@ -263,7 +264,7 @@ def draw_configurations():
         obstacle = Obstacle(x_left_right_pose, y_left_right_pose)
         obstacles_list.append(obstacle)
 
-    GeneratePRM(thd=200, nodes=100, obstacles_list=obstacles_list)
+    return GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
 
 
 if __name__ == '__main__':
@@ -275,6 +276,6 @@ if __name__ == '__main__':
     # plt.xlim([X_LIMIT_LEFT, X_LIMIT_RIGHT])
     # plt.ylim([Y_LIMIT_DOWN, Y_LIMIT_UP])
     # plt.show()
-    draw_configurations()
+    prm = draw_configurations()
     # ob = Obstacle(50, 50)
 
