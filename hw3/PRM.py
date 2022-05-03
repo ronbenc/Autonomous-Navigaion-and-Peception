@@ -270,7 +270,16 @@ def draw_configurations():
 
     GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
 
+def nearest_neighbor(pos, prm_model):
+    min_distance = float("inf")
+    nearest_neighbor = None
+    for node in prm_model.forest:
+        curr_dist = dist(pos, GraphSearch.str_node_to_float_node(node))
+        if curr_dist < min_distance:
+            min_distance = curr_dist
+            nearest_neighbor = node
 
+    return nearest_neighbor
 
 if __name__ == '__main__':
     # define Matplotlib figure and axis
@@ -297,30 +306,10 @@ if __name__ == '__main__':
     prm_model = GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
 
     # part b
-    # find start pos
-    min_distance = float("inf")
-    start_pos = None
-    for node in prm_model.forest:
-        node_pos = node.split('_')
-
-        if dist((0, 0), GraphSearch.str_node_to_float_node(node)) < min_distance:
-            min_distance = dist((0, 0), GraphSearch.str_node_to_float_node(node))
-            start_pos = node
-
-    print(start_pos)
-
-    # find goal pos
-    min_distance = float("inf")
-    goal_pos = None
-    for node in prm_model.forest:
-        if dist((X_LIMIT_RIGHT, Y_LIMIT_UP), GraphSearch.str_node_to_float_node(node)) < min_distance:
-            min_distance = dist((X_LIMIT_RIGHT, Y_LIMIT_UP), GraphSearch.str_node_to_float_node(node))
-            goal_pos = node
-
-    print(goal_pos)
+    start_pos = nearest_neighbor((0, 0), prm_model)
+    goal_pos = nearest_neighbor((X_LIMIT_RIGHT, Y_LIMIT_UP), prm_model)
 
     # solve graph search problem
-
     dijksta_solver = GraphSearch.Dijkstra(prm_model.forest)
     dijksta_solver.compute_costs(start_pos)
     shortest_path = dijksta_solver.find_path(goal_pos) # path is reversed
