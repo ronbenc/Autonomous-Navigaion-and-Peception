@@ -135,20 +135,25 @@ class PRM(object):
         G = nx.Graph()
         # add nodes
         [G.add_node(key, pos=(float(key.split('_')[0]), float(key.split('_')[1]))) for key in self.forest.keys()]
+
+        # [G.add_node(str(index), pos=(float(key.split('_')[0]), float(key.split('_')[1])))
+        # for index, (key, value) in enumerate(self.forest.items())]
         # add edges
         [[G.add_edge(key, self.forest[key][i]) for i in range(0, len(self.forest[key]))]
-                    for key in self.forest.keys()]
+                     for key in self.forest.keys()]
 
         pos = nx.get_node_attributes(G, 'pos')
-        nx.draw(G, pos)
+        # get pos coordinate
+        pos_coordinate = [pos[key] for key in pos]
+
+        nx.draw(G, pos, with_labels=True,font_color='r')
+
 
         # add obstacles
         for obstacle in self.obstacles_list:
             ax.add_patch(Rectangle((obstacle.x_left, obstacle.y_left), X_Obs, Y_Obs,
                                    edgecolor='blue', lw=1, fill=True, facecolor='red'))
         plt.show()
-
-
 
     def add_node(self,node:Node) -> bool:
         # check if the node not in "bad" area
@@ -157,7 +162,7 @@ class PRM(object):
                     obstacle.y_left <= node.y_pos <= obstacle.y_right):
                 return False
 
-        # add node to the node-list
+        # crate node list if is not exsist
         if not str(node) in self.forest.keys():
             self.forest[str(node)] = []
 
@@ -169,7 +174,17 @@ class PRM(object):
 
         # add node to the forest
         for neighbor in nearest_neighbor_list:
-            self.forest[str(node)].append(str(neighbor))
+            # add neighbor to node list
+            if str(neighbor) not in self.forest[str(node)]:
+                self.forest[str(node)].append(str(neighbor))
+
+            # crate neighbor list if is not exsist
+            if not str(neighbor) in self.forest.keys():
+                self.forest[str(neighbor)] = []
+
+            # add node to neighbor list
+            if node not in self.forest[str(neighbor)]:
+                self.forest[str(neighbor)].append(str(node))
 
         # if not str(nearest_neighbor) in self.forest[str(nearest_neighbor)]:
         #    self.forest[str(nearest_neighbor)] = []
@@ -192,8 +207,6 @@ class PRM(object):
                     return False
 
         return True
-
-
 
     def _nearest_neighbors(self, node:Node) -> list:
 
@@ -227,8 +240,8 @@ def GeneratePRM(thd:float,nodes:int,obstacles_list:list):
     prm_model = PRM(thd=50, nodes_number=100, obstacles_list=obstacles_list)
     num_nodes_added = 0
     while True:
-        x_pos = random.uniform(X_LIMIT_LEFT, X_LIMIT_RIGHT)
-        y_pos = random.uniform(Y_LIMIT_DOWN, Y_LIMIT_UP)
+        x_pos = random.randint(X_LIMIT_LEFT, X_LIMIT_RIGHT)
+        y_pos = random.randint(Y_LIMIT_DOWN, Y_LIMIT_UP)
         node = Node(x_pos=x_pos, y_pos=y_pos)
         # add the node
         is_node_added = prm_model.add_node(node)
@@ -249,7 +262,6 @@ def draw_configurations():
         y_left_right_pose = random.uniform(Y_LIMIT_DOWN, Y_LIMIT_UP-Y_Obs)
         obstacle = Obstacle(x_left_right_pose, y_left_right_pose)
         obstacles_list.append(obstacle)
-
 
     GeneratePRM(thd=200, nodes=100, obstacles_list=obstacles_list)
 
