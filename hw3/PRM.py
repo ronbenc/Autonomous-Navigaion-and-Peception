@@ -281,6 +281,37 @@ def nearest_neighbor(pos, prm_model):
 
     return nearest_neighbor
 
+def plot_shortest_path(shortest_path:list,forest:dict,obstacles_list:list):
+    f, ax = plt.subplots(1, 1, figsize=(28, 28))
+
+    G = nx.Graph()
+    # add nodes
+    [G.add_node(key, pos=(float(key.split('_')[0]), float(key.split('_')[1]))) for key in forest.keys()]
+
+    # add edges
+    [[G.add_edge(key, forest[key][i],color='black',weight=1) for i in range(0, len(forest[key]))]
+    for key in forest.keys()]
+
+    # add shortest path edges (with color)
+    [G.add_edge(shortest_path[index], shortest_path[index+1],color='g',weight=6) for index in
+      range(0, len(shortest_path)-1)]
+
+    # get params to plot
+    weights = nx.get_edge_attributes(G, 'weight').values()
+    colors = nx.get_edge_attributes(G, 'color').values()
+    pos = nx.get_node_attributes(G, 'pos')
+    # get pos coordinate
+    pos_coordinate = [pos[key] for key in pos]
+
+    for obstacle in obstacles_list:
+        ax.add_patch(Rectangle((obstacle.x_left, obstacle.y_left), X_Obs, Y_Obs,
+                               edgecolor='blue', lw=1, fill=True, facecolor='red'))
+
+    nx.draw(G, pos, with_labels=True, font_color='r',edge_color=colors, width=list(weights))
+    plt.show()
+
+    pass
+
 if __name__ == '__main__':
     # define Matplotlib figure and axis
     # fig, ax = plt.subplots()
@@ -314,3 +345,4 @@ if __name__ == '__main__':
     dijksta_solver.compute_costs(start_pos)
     shortest_path = dijksta_solver.find_path(goal_pos) # path is reversed
     print(shortest_path)
+    plot_shortest_path(shortest_path=shortest_path,forest=prm_model.forest,obstacles_list=obstacles_list)
