@@ -1,4 +1,5 @@
 # assume all the polygons on the same size
+from dis import dis
 import random
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -6,8 +7,8 @@ import numpy as np
 from matplotlib.patches import Rectangle
 import shapely
 from shapely.geometry import LineString, Point
-
-
+import GraphSearch
+from math import dist
 
 
 random.seed(20)
@@ -239,7 +240,7 @@ def GeneratePRM(thd:float,nodes:int,obstacles_list:list):
 
     # create nodes
     prm_model = PRM(thd=thd, nodes_number=nodes, obstacles_list=obstacles_list)
-    num_nodes_added = 0
+    num_nodes_added = 0  
     while True:
         x_pos = random.randint(X_LIMIT_LEFT, X_LIMIT_RIGHT)
         y_pos = random.randint(Y_LIMIT_DOWN, Y_LIMIT_UP)
@@ -270,6 +271,7 @@ def draw_configurations():
     GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
 
 
+
 if __name__ == '__main__':
     # define Matplotlib figure and axis
     # fig, ax = plt.subplots()
@@ -293,5 +295,33 @@ if __name__ == '__main__':
         obstacles_list.append(obstacle)
 
     prm_model = GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
-    print(prm_model.forest)
 
+    # part b
+    # find start pos
+    min_distance = float("inf")
+    start_pos = None
+    for node in prm_model.forest:
+        node_pos = node.split('_')
+
+        if dist((0, 0), GraphSearch.str_node_to_float_node(node)) < min_distance:
+            min_distance = dist((0, 0), GraphSearch.str_node_to_float_node(node))
+            start_pos = node
+
+    print(start_pos)
+
+    # find goal pos
+    min_distance = float("inf")
+    goal_pos = None
+    for node in prm_model.forest:
+        if dist((X_LIMIT_RIGHT, Y_LIMIT_UP), GraphSearch.str_node_to_float_node(node)) < min_distance:
+            min_distance = dist((X_LIMIT_RIGHT, Y_LIMIT_UP), GraphSearch.str_node_to_float_node(node))
+            goal_pos = node
+
+    print(goal_pos)
+
+    # solve graph search problem
+
+    dijksta_solver = GraphSearch.Dijkstra(prm_model.forest)
+    dijksta_solver.compute_costs(start_pos)
+    shortest_path = dijksta_solver.find_path(goal_pos) # path is reversed
+    print(shortest_path)
