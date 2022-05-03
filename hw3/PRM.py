@@ -238,7 +238,7 @@ class PRM(object):
 def GeneratePRM(thd:float,nodes:int,obstacles_list:list):
 
     # create nodes
-    prm_model = PRM(thd=thd, nodes_number=100, obstacles_list=obstacles_list)
+    prm_model = PRM(thd=thd, nodes_number=nodes, obstacles_list=obstacles_list)
     num_nodes_added = 0
     while True:
         x_pos = random.randint(X_LIMIT_LEFT, X_LIMIT_RIGHT)
@@ -255,6 +255,9 @@ def GeneratePRM(thd:float,nodes:int,obstacles_list:list):
     # prm_model.plot_obstacles()
     prm_model.plot_all()
 
+    # return prm
+    return prm_model
+
 def draw_configurations():
     obstacles_list = list()
     # crate obstacles Rectangle
@@ -264,7 +267,7 @@ def draw_configurations():
         obstacle = Obstacle(x_left_right_pose, y_left_right_pose)
         obstacles_list.append(obstacle)
 
-    return GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
+    GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
 
 
 if __name__ == '__main__':
@@ -276,6 +279,19 @@ if __name__ == '__main__':
     # plt.xlim([X_LIMIT_LEFT, X_LIMIT_RIGHT])
     # plt.ylim([Y_LIMIT_DOWN, Y_LIMIT_UP])
     # plt.show()
-    prm = draw_configurations()
+    # prm = draw_configurations()
     # ob = Obstacle(50, 50)
+
+    ### For Ron
+    print('ron')
+    obstacles_list = list()
+    # crate obstacles Rectangle
+    for i in range(0, N):
+        x_left_right_pose = random.uniform(X_LIMIT_LEFT, X_LIMIT_RIGHT-X_Obs)
+        y_left_right_pose = random.uniform(Y_LIMIT_DOWN, Y_LIMIT_UP-Y_Obs)
+        obstacle = Obstacle(x_left_right_pose, y_left_right_pose)
+        obstacles_list.append(obstacle)
+
+    prm_model = GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
+    print(prm_model.forest)
 
