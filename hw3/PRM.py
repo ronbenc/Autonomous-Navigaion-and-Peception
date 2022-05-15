@@ -46,7 +46,7 @@ class Obstacle(object):
         return (self.x_left, self.y_left)
 
     def _get_right_button(self):
-        return (self.x_right, self.y_right)
+        return (self.x_right, self.y_left)
 
     def _get_left_up(self):
         return (self.x_left, self.y_right)
@@ -199,7 +199,6 @@ class PRM(object):
         #line = LineString([(0, 0), (1, 1)])
         #other = LineString([(0, 1), (1, 0)])
         # print(line.intersects(other))
-
         line_node_neighbor = LineString([node.point(), neighbor.point()])
         for obstacle in self.obstacles_list:
             for line in obstacle.get_lines():
@@ -222,15 +221,15 @@ class PRM(object):
             distance_x = (node.x_pos - float(neighbor_x_pos))**2
             distance_y = (node.y_pos - float(neighbor_y_pos))**2
             distance = (distance_x + distance_y)**0.5
-
+            if  distance!=0:
             # check reaching
-            reachable = self._check_reachable(node, Node(float(neighbor_x_pos), float(neighbor_y_pos)))
-            if not reachable:
-                # continue to the next neighbor
-                continue
+                reachable = self._check_reachable(node, Node(float(neighbor_x_pos), float(neighbor_y_pos)))
+                if not reachable:
+                    # continue to the next neighbor
+                    continue
             # check distance
-            if distance < self.thd and distance!=0:
-                nearest_neighbor.append(neighbor)
+                if distance < self.thd:
+                    nearest_neighbor.append(neighbor)
                 # min_distance = distance
                 # nearest_neighbor = neighbor
 
