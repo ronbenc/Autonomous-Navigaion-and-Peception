@@ -91,6 +91,12 @@ class PRM(object):
 
         self.obstacles_list = obstacles_list
 
+    def get_number_of_edges(self):
+        sum_nodes = 0
+        for adj_list in self.forest.values():
+            sum_nodes += len(adj_list)
+        return sum_nodes//2
+
     def get_avg_node_degree(self):
         sum_nodes = 0
         for adj_list in self.forest.values():
