@@ -13,16 +13,16 @@ from math import dist
 
 random.seed(20)
 X_LIMIT_LEFT = 0
-X_LIMIT_RIGHT = 300
+X_LIMIT_RIGHT = 100
 
 Y_LIMIT_DOWN = 0
-Y_LIMIT_UP = 300
-N = 10
+Y_LIMIT_UP = 100
+N = 15
 X_Obs = 15
 Y_Obs = 10
 
 
-def is_legal(x,y) -> bool:
+def is_legal(x, y) -> bool:
     if x < X_LIMIT_LEFT:
         return False
     if x + X_Obs > X_LIMIT_RIGHT:
@@ -133,7 +133,6 @@ class PRM(object):
 
     def plot_all(self):
         f, ax = plt.subplots(1, 1, figsize=(28,28))
-
         G = nx.Graph()
         # add nodes
         [G.add_node(key, pos=(float(key.split('_')[0]), float(key.split('_')[1]))) for key in self.forest.keys()]
@@ -147,7 +146,8 @@ class PRM(object):
         pos = nx.get_node_attributes(G, 'pos')
         # get pos coordinate
         pos_coordinate = [pos[key] for key in pos]
-
+        plt.xlabel("X-axis")
+        plt.ylabel("Y-axis")
         nx.draw(G, pos, with_labels=True,font_color='r')
 
 
@@ -155,6 +155,9 @@ class PRM(object):
         for obstacle in self.obstacles_list:
             ax.add_patch(Rectangle((obstacle.x_left, obstacle.y_left), X_Obs, Y_Obs,
                                    edgecolor='blue', lw=1, fill=True, facecolor='red'))
+
+        # set title
+        ax.set_title(f'PRM graph - nodes {self.nodes_number} , thd - {self.thd}',fontsize=50)
         plt.show()
 
     def add_node(self,node:Node) -> bool:
@@ -196,8 +199,8 @@ class PRM(object):
 
     def _check_reachable(self,node, neighbor):
         # create line from node to neighbor
-        #line = LineString([(0, 0), (1, 1)])
-        #other = LineString([(0, 1), (1, 0)])
+        # line = LineString([(0, 0), (1, 1)])
+        # other = LineString([(0, 1), (1, 0)])
         # print(line.intersects(other))
         line_node_neighbor = LineString([node.point(), neighbor.point()])
         for obstacle in self.obstacles_list:
@@ -221,7 +224,7 @@ class PRM(object):
             distance_x = (node.x_pos - float(neighbor_x_pos))**2
             distance_y = (node.y_pos - float(neighbor_y_pos))**2
             distance = (distance_x + distance_y)**0.5
-            if  distance!=0:
+            if  distance != 0:
             # check reaching
                 reachable = self._check_reachable(node, Node(float(neighbor_x_pos), float(neighbor_y_pos)))
                 if not reachable:
@@ -246,7 +249,7 @@ def GeneratePRM(thd:float,nodes:int,obstacles_list:list):
         node = Node(x_pos=x_pos, y_pos=y_pos)
         # add the node
         is_node_added = prm_model.add_node(node)
-        print(f'the node is {is_node_added}')
+        # print(f'the node is {is_node_added}')
         if is_node_added:
             num_nodes_added += 1
         if num_nodes_added >= prm_model.nodes_number:
@@ -311,6 +314,19 @@ def plot_shortest_path(shortest_path:list,forest:dict,obstacles_list:list):
 
     pass
 
+def plot_generatePRM(obstacles_list):
+
+    prm_model_20_100 = GeneratePRM(thd=20, nodes=100, obstacles_list=obstacles_list)
+
+    prm_model_50_100 = GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
+
+    prm_model_20_500 = GeneratePRM(thd=20, nodes=500, obstacles_list=obstacles_list)
+
+    prm_model_50_500 = GeneratePRM(thd=50, nodes=500, obstacles_list=obstacles_list)
+
+
+
+
 if __name__ == '__main__':
     # define Matplotlib figure and axis
     # fig, ax = plt.subplots()
@@ -323,8 +339,6 @@ if __name__ == '__main__':
     # prm = draw_configurations()
     # ob = Obstacle(50, 50)
 
-    ### For Ron
-    print('ron')
     obstacles_list = list()
     # crate obstacles Rectangle
     for i in range(0, N):
@@ -333,9 +347,10 @@ if __name__ == '__main__':
         obstacle = Obstacle(x_left_right_pose, y_left_right_pose)
         obstacles_list.append(obstacle)
 
-    prm_model = GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
-
+    # part 1
+    # plot_generatePRM(obstacles_list)
     # part b
+    prm_model = GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
     start_pos = nearest_neighbor((0, 0), prm_model)
     goal_pos = nearest_neighbor((X_LIMIT_RIGHT, Y_LIMIT_UP), prm_model)
 
