@@ -169,9 +169,10 @@ class PRM(object):
 
         _degree = self.get_avg_node_degree()
         degree = "{:.2f}".format(_degree)
+        num_of_edges = self.get_number_of_edges()
         # set title
         ax.set_title(f'PRM graph - nodes {self.nodes_number} , thd - {self.thd}'
-                     f' degree - {degree}', fontsize=50)
+                     f' degree - {degree} num_of_edges - {num_of_edges}', fontsize=50)
 
         # plt.show(black=False)
         plt.savefig(f'PRM graph-nodes-{self.nodes_number},thd-{self.thd}.png', format="PNG")
@@ -303,16 +304,18 @@ def plot_shortest_path(shortest_path:list,forest:dict,obstacles_list:list):
     f, ax = plt.subplots(1, 1, figsize=(28, 28))
 
     G = nx.Graph()
-    # add nodes
-    [G.add_node(key, pos=(float(key.split('_')[0]), float(key.split('_')[1]))) for key in forest.keys()]
+
 
     # add edges
-    [[G.add_edge(key, forest[key][i],color='black',weight=1) for i in range(0, len(forest[key]))]
-    for key in forest.keys()]
+    #[[G.add_edge(key, forest[key][i],color='yellow',weight=1) for i in range(0, len(forest[key]))]
+    # for key in forest.keys()]
 
     # add shortest path edges (with color)
-    [G.add_edge(shortest_path[index], shortest_path[index+1],color='g',weight=6) for index in
+    [G.add_edge(shortest_path[index], shortest_path[index+1],color='g',weight=2) for index in
       range(0, len(shortest_path)-1)]
+
+    # add nodes
+    [G.add_node(key, pos=(float(key.split('_')[0]), float(key.split('_')[1]))) for key in forest.keys()]
 
     # get params to plot
     weights = nx.get_edge_attributes(G, 'weight').values()
@@ -326,7 +329,11 @@ def plot_shortest_path(shortest_path:list,forest:dict,obstacles_list:list):
                                edgecolor='blue', lw=1, fill=True, facecolor='red'))
 
     nx.draw(G, pos, with_labels=True, font_color='r',edge_color=colors, width=list(weights))
-    plt.show()
+
+    ax.set_title(f'PRM shortest_path graph- nodes 100 , thd 50', fontsize=50)
+
+    # plt.show(black=False)
+    plt.savefig(f'PRM-shortest_path-graph-nodes-100,thd-50.png', format="PNG")
 
     pass
 
@@ -364,9 +371,9 @@ if __name__ == '__main__':
         obstacles_list.append(obstacle)
 
     # part 1
-    plot_generatePRM(obstacles_list)
+    # plot_generatePRM(obstacles_list)
     # part b
-    prm_model = GeneratePRM(thd=20, nodes=100, obstacles_list=obstacles_list)
+    prm_model = GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
     start_pos = nearest_neighbor((0, 0), prm_model)
     goal_pos = nearest_neighbor((X_LIMIT_RIGHT, Y_LIMIT_UP), prm_model)
 
