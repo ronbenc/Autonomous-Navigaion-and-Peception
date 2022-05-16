@@ -11,7 +11,7 @@ import GraphSearch
 from math import dist
 
 
-random.seed(20)
+random.seed(1)
 X_LIMIT_LEFT = 0
 X_LIMIT_RIGHT = 100
 
@@ -154,19 +154,22 @@ class PRM(object):
         pos = nx.get_node_attributes(G, 'pos')
         # get pos coordinate
         pos_coordinate = [pos[key] for key in pos]
-        plt.xlabel("X-axis")
-        plt.ylabel("Y-axis")
         nx.draw(G, pos, with_labels=True,font_color='r')
-
 
         # add obstacles
         for obstacle in self.obstacles_list:
             ax.add_patch(Rectangle((obstacle.x_left, obstacle.y_left), X_Obs, Y_Obs,
                                    edgecolor='blue', lw=1, fill=True, facecolor='red'))
 
+        _degree = self.get_avg_node_degree()
+        degree = "{:.2f}".format(_degree)
         # set title
-        ax.set_title(f'PRM graph - nodes {self.nodes_number} , thd - {self.thd}',fontsize=50)
-        plt.show()
+        ax.set_title(f'PRM graph - nodes {self.nodes_number} , thd - {self.thd}'
+                     f' degree - {degree}', fontsize=50)
+
+        # plt.show(black=False)
+        plt.savefig(f'PRM graph-nodes-{self.nodes_number},thd-{self.thd}.png', format="PNG")
+
 
     def add_node(self,node:Node) -> bool:
         # check if the node not in "bad" area
@@ -215,7 +218,7 @@ class PRM(object):
             for line in obstacle.get_lines():
                 if line_node_neighbor.intersects(line):
                     # lines are intersects somewhere
-                    print('lines are interpolate')
+                    # print('lines are interpolate')
                     return False
 
         return True
@@ -265,7 +268,6 @@ def GeneratePRM(thd:float,nodes:int,obstacles_list:list):
 
     # prm_model.plot_obstacles()
     prm_model.plot_all()
-
     # return prm
     return prm_model
 
@@ -356,9 +358,9 @@ if __name__ == '__main__':
         obstacles_list.append(obstacle)
 
     # part 1
-    # plot_generatePRM(obstacles_list)
+    plot_generatePRM(obstacles_list)
     # part b
-    prm_model = GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
+    prm_model = GeneratePRM(thd=20, nodes=100, obstacles_list=obstacles_list)
     start_pos = nearest_neighbor((0, 0), prm_model)
     goal_pos = nearest_neighbor((X_LIMIT_RIGHT, Y_LIMIT_UP), prm_model)
 
