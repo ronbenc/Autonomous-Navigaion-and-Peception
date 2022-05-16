@@ -32,14 +32,16 @@ class Dijkstra:
                         self.G[next_node] = next_node_new_cost
                         self.P[next_node] = curr_node
 
-    def find_path(self, goal_node):
+    def find_path_and_cost(self, goal_node):
         reversed_path = []
         curr_node = goal_node
+        cost = self.G[goal_node]
         while(curr_node):
             reversed_path.append(curr_node)
             curr_node = self.P[curr_node]
+
             
-        return reversed_path
+        return reversed_path, cost
 
 def str_node_to_float_node(node: str) -> Tuple:
     x_pos = float(node.split('_')[0])
