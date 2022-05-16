@@ -300,15 +300,15 @@ def nearest_neighbor(pos, prm_model):
 
     return nearest_neighbor
 
-def plot_shortest_path(shortest_path:list,forest:dict,obstacles_list:list):
+def plot_shortest_path(shortest_path:list,forest:dict,obstacles_list:list,cost):
     f, ax = plt.subplots(1, 1, figsize=(28, 28))
 
     G = nx.Graph()
 
 
     # add edges
-    #[[G.add_edge(key, forest[key][i],color='yellow',weight=1) for i in range(0, len(forest[key]))]
-    # for key in forest.keys()]
+    [[G.add_edge(key, forest[key][i],color='yellow',weight=1) for i in range(0, len(forest[key]))]
+     for key in forest.keys()]
 
     # add shortest path edges (with color)
     [G.add_edge(shortest_path[index], shortest_path[index+1],color='g',weight=2) for index in
@@ -330,7 +330,7 @@ def plot_shortest_path(shortest_path:list,forest:dict,obstacles_list:list):
 
     nx.draw(G, pos, with_labels=True, font_color='r',edge_color=colors, width=list(weights))
 
-    ax.set_title(f'PRM shortest_path graph- nodes 100 , thd 50', fontsize=50)
+    ax.set_title(f'PRM shortest_path graph - nodes 100 , thd 50 cost {cost}', fontsize=50)
 
     # plt.show(black=False)
     plt.savefig(f'PRM-shortest_path-graph-nodes-100,thd-50.png', format="PNG")
@@ -370,7 +370,7 @@ if __name__ == '__main__':
         obstacle = Obstacle(x_left_right_pose, y_left_right_pose)
         obstacles_list.append(obstacle)
 
-    # part 1
+    # part a
     # plot_generatePRM(obstacles_list)
     # part b
     prm_model = GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
@@ -380,6 +380,6 @@ if __name__ == '__main__':
     # solve graph search problem
     dijksta_solver = GraphSearch.Dijkstra(prm_model.forest)
     dijksta_solver.compute_costs(start_pos)
-    shortest_path = dijksta_solver.find_path(goal_pos) # path is reversed
+    shortest_path,cost = dijksta_solver.find_path_and_cost(goal_pos) # path is reversed
     print(shortest_path)
-    plot_shortest_path(shortest_path=shortest_path,forest=prm_model.forest,obstacles_list=obstacles_list)
+    plot_shortest_path(shortest_path=shortest_path,forest=prm_model.forest,obstacles_list=obstacles_list,cost=cost)
