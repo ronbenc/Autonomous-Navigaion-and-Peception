@@ -91,6 +91,14 @@ class PRM(object):
 
         self.obstacles_list = obstacles_list
 
+    def get_avg_node_degree(self):
+        sum_nodes = 0
+        for adj_list in self.forest.values():
+            sum_nodes += len(adj_list)
+        number_of_nodes = len(self.forest)
+        avg_node_degree = sum_nodes/number_of_nodes
+        return avg_node_degree
+
     def plot_obstacles(self):
         fig, ax = plt.subplots()
         # add obstacles
