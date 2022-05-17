@@ -1,4 +1,5 @@
 # assume all the polygons on the same size
+import time
 from dis import dis
 import random
 import networkx as nx
@@ -341,12 +342,11 @@ def plot_generatePRM(obstacles_list):
 
     prm_model_20_100 = GeneratePRM(thd=20, nodes=100, obstacles_list=obstacles_list)
 
-    prm_model_50_100 = GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
-
     prm_model_20_500 = GeneratePRM(thd=20, nodes=500, obstacles_list=obstacles_list)
 
     prm_model_50_500 = GeneratePRM(thd=50, nodes=500, obstacles_list=obstacles_list)
 
+    prm_model_50_100 = GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
 
 
 
@@ -371,15 +371,18 @@ if __name__ == '__main__':
         obstacles_list.append(obstacle)
 
     # part a
-    # plot_generatePRM(obstacles_list)
+    plot_generatePRM(obstacles_list)
+
     # part b
     prm_model = GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
+    prm_model = GeneratePRM(thd=50, nodes=100, obstacles_list=obstacles_list)
+
     start_pos = nearest_neighbor((0, 0), prm_model)
     goal_pos = nearest_neighbor((X_LIMIT_RIGHT, Y_LIMIT_UP), prm_model)
 
     # solve graph search problem
     dijksta_solver = GraphSearch.Dijkstra(prm_model.forest)
     dijksta_solver.compute_costs(start_pos)
-    shortest_path,cost = dijksta_solver.find_path_and_cost(goal_pos) # path is reversed
+    shortest_path, cost = dijksta_solver.find_path_and_cost(goal_pos) # path is reversed
     print(shortest_path)
     plot_shortest_path(shortest_path=shortest_path,forest=prm_model.forest,obstacles_list=obstacles_list,cost=cost)
