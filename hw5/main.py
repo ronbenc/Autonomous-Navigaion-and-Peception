@@ -16,13 +16,14 @@ if __name__ == '__main__':
     T = 10
     action = np.array([0.5, 0.5])
 
-    belief_means = []
+    belief_means_x = []
+    belief_means_y = []
     belief_covs = []
     for i in range(T):
-        print(i)
         bmdp.transit_belief_MDP(action)
-        belief_means.append(bmdp.belief_mean)
+        belief_means_x.append(bmdp.belief_mean[0])
+        belief_means_y.append(bmdp.belief_mean[1])
         belief_covs.append(bmdp.belief_cov)
 
-    plt.scatter(belief_means[0], belief_means[1])
+    plt.scatter(belief_means_x, belief_means_y)
     plt.show()
