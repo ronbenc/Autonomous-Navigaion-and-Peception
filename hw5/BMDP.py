@@ -23,7 +23,7 @@ class BMDPscenaraio:
     
 
     def _propogate_belief(self, action):
-        self.belief_mean = (self.F @ np.array(self.belief_mean)) + action
+        self.belief_mean = (self.F @ np.array(self.belief_mean).T) + action
         self.belief_cov = (self.F @ self.belief_cov @ self.F.T) + self.process_cov
 
 
