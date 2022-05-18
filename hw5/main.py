@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
     # part c + d + e
     # x_g = np.random.uniform(0, 8, 2)
-    x_g = np.array([8, 1])
+    x_g = np.array([5, 5])
     horizion = 3
     number_of_samples = 2
     T = 10
@@ -98,9 +98,11 @@ if __name__ == '__main__':
         belief_covs.append(bmdp.belief_cov)
 
 
-    plt.scatter(beacons[:, 0], beacons[:, 1], label="beacons")
+    plt.scatter(beacons[:, 0], beacons[:, 1], label="beacons", marker='^')
+    plt.scatter(x_g[0], x_g[1], label="goal", marker='*')
     plt.scatter(*zip(*ground_truths), label="ground truth")
-    plt.scatter(*zip(*observations), label="observations")
+    if observations:
+        plt.scatter(*zip(*observations), label="observations")
     plt.scatter(*zip(*belief_means), label="belief means")
     plt.legend(loc='upper left')
 
