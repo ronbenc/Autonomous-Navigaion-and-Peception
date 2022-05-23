@@ -4,7 +4,8 @@ from turtle import st
 import numpy as np
 
 class BMDPscenaraio:
-    def __init__(self, belief_mean, belief_cov, F, process_cov, beacons, actions, d, rmin, lambda_reg = 0):
+    def __init__(self, x_gt, belief_mean, belief_cov, F, process_cov, beacons, actions, d, rmin, lambda_reg = 0):
+        self.x_gt = x_gt 
         self.belief_mean = belief_mean
         self.belief_cov = belief_cov
         self.F = F
@@ -20,9 +21,9 @@ class BMDPscenaraio:
         distances_from_beacons = np.linalg.norm(self.beacons-state, axis=1)
         min_dist = np.min(distances_from_beacons)
         if min_dist <= self.d:
-            obs_cov = 0.01*max(min_dist, self.rmin)*np.eye(2)
+            obs_cov = ((0.01*max(min_dist, self.rmin))**2)*np.eye(2)
             self.last_obs_cov = obs_cov
-            obs = state + np.random.multivariate_normal(np.zeros_like(state), obs_cov)
+            obs = self.x_gt + np.random.multivariate_normal(np.zeros_like(self.x_gt), obs_cov)
             return obs
         else:
             return None
@@ -39,9 +40,9 @@ class BMDPscenaraio:
         self.belief_mean = self.belief_mean + (k @ (obs-self.belief_mean))
         self.belief_cov = (np.eye(2) - k) @ self.belief_cov
 
-    def sample_motion_model(self, action, state):
-        noise = np.random.multivariate_normal(np.zeros_like(state), self.process_cov)
-        return state + (self.F @ action) + noise
+    def sample_motion_model(self, action):
+        noise = np.random.multivariate_normal(np.zeros_like(self.x_gt), self.process_cov)
+        self.x_gt += (self.F @ action) + noise
 
     def transit_belief_MDP(self, action):
         # propogate belief using action and transition model (KF)
@@ -60,32 +61,26 @@ class BMDPscenaraio:
         return cost
 
 
-# class BMDP_planner:
-#     def __init__(self, goal_state, number_of_samples) -> None:
-#         self.goal_state = goal_state
-#         self.number_of_samples = number_of_samples
-
-    
-    def sparse_sampling(self, goal_state, number_of_samples, horizon):
+    def sparse_sampling(self, goal_state, number_of_samples, horizon, discount_factor):
+        reward = 1/self._cost(goal_state)  # does not depend on action in our case
         if horizon == 0:
-            return None, self._cost(goal_state)
-        best_action, best_value = None, np.inf
+            return None, reward
+        best_action, best_value = None, -np.inf
         curr_state = self.belief_mean, self.belief_cov
-        cost = self._cost(goal_state)  # does not depend on action in our case
         for action in self.actions:
             # compute average value over n samples for current action
-            avg_future_val = 0
+            sum_future_val = 0
             for i in range(number_of_samples):
                 self.transit_belief_MDP(action)
-                selected_action, value = self.sparse_sampling(goal_state, number_of_samples, horizon-1)
-                avg_future_val += value
+                selected_action, value = self.sparse_sampling(goal_state, number_of_samples, horizon-1, discount_factor)
+                sum_future_val += discount_factor*value
                 self.belief_mean, self.belief_cov = curr_state
             
             #update action and value if they are better
-            future_val_for_action = avg_future_val/number_of_samples
-            if future_val_for_action < best_value:
+            future_val_for_action = sum_future_val/number_of_samples
+            if future_val_for_action > best_value:
                 best_action, best_value = action, future_val_for_action
 
-        return best_action, best_value + cost
+        return best_action, best_value + reward
 
 
