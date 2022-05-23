@@ -1,6 +1,3 @@
-from msilib.schema import Class
-from tkinter.messagebox import NO
-from turtle import st
 import numpy as np
 
 class BMDPscenaraio:

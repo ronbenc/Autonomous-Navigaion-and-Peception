@@ -53,30 +53,31 @@ def adjust_params():
                         [1 / np.sqrt(2), 1 / np.sqrt(2)], [-1 / np.sqrt(2), 1 / np.sqrt(2)],
                         [1 / np.sqrt(2), -1 / np.sqrt(2)], [-1 / np.sqrt(2), -1 / np.sqrt(2)], [0, 0]], dtype=float)
     x_0_gt = np.array([-0.5, -0.2], dtype=float)
-    x_g = np.array([5, 5])
+    x_g = np.array([7, 7])
     horizions = [1 ,2 , 3]
     lambda_regs = [0.3,0.5, 0.8]
-
     number_of_samples = 4
-    T = 5
-
+    T = 10
 
     for horizion in horizions:
         for lambda_reg in lambda_regs:
-            ground_truths = [x_0_gt]
+            x_0_gt = np.array([-0.5, -0.2], dtype=float)
+            ground_truths = [np.copy(x_0_gt)]
             observations = []
-            belief_means, belief_covs = [], []
-            bmdp = BMDPscenaraio(np.copy(initial_belief_mean), np.copy(initial_belief_cov), np.eye(2),
+            bmdp = BMDPscenaraio(x_0_gt,np.copy(initial_belief_mean), np.copy(initial_belief_cov), np.eye(2),
                                  np.copy(process_cov), beacons, actions, d=1,
                                  rmin=0.1, lambda_reg=lambda_reg)
+            belief_means, belief_covs = [np.copy(bmdp.belief_mean)], [np.copy(bmdp.belief_cov)]
             for i in range(T):
-                action, val = bmdp.sparse_sampling(np.copy(x_g), number_of_samples, horizion)
-                ground_truths.append(bmdp.sample_motion_model(action, ground_truths[-1]))
+                action, val = bmdp.sparse_sampling(np.copy(x_g), number_of_samples, horizion,discount_factor=0.9)
+                bmdp.sample_motion_model(action)
+                ground_truths.append(np.copy(bmdp.x_gt))
                 obs = bmdp.transit_belief_MDP(action)
                 if obs is not None:
                     observations.append(obs)
-                belief_means.append(bmdp.belief_mean)
-                belief_covs.append(bmdp.belief_cov)
+                belief_means.append(np.copy(bmdp.belief_mean))
+                belief_covs.append(np.copy(bmdp.belief_cov))
+            plt.close()
             plt.title(f'horizion is {horizion} and lambda is {lambda_reg}')
             plt.scatter(beacons[:, 0], beacons[:, 1], label="beacons", marker='^')
             plt.scatter(x_g[0], x_g[1], label="goal", marker='*')
@@ -85,9 +86,9 @@ def adjust_params():
                 plt.scatter(*zip(*observations), label="observations")
             plt.scatter(*zip(*belief_means), label="belief means")
             plt.legend(loc='upper left')
-
-            for i in range(T):
+            for i in range(T+1):
                 plot_cov_ellipse(cov=belief_covs[i], pos=belief_means[i], alpha=0.1)
+            plt.savefig(f'2_b_horizion_{horizion}_lambda_{lambda_reg}.png')
             plt.show()
 
 
@@ -101,31 +102,30 @@ def run_simulation():
     actions = np.array([[1, 0], [-1, 0], [0, 1], [0, -1],
                         [1 / np.sqrt(2), 1 / np.sqrt(2)], [-1 / np.sqrt(2), 1 / np.sqrt(2)],
                         [1 / np.sqrt(2), -1 / np.sqrt(2)], [-1 / np.sqrt(2), -1 / np.sqrt(2)], [0, 0]], dtype=float)
-
-
-    bmdp = BMDPscenaraio(initial_belief_mean, initial_belief_cov, np.eye(2), process_cov, beacons, actions, d=1, rmin=0.1, lambda_reg=0.3)
     x_0_gt = np.array([-0.5, -0.2], dtype=float)
-
-
-    x_g = np.array([5, 5])
+    x_g = np.array([7, 7])
     horizion = 15
-
-    number_of_samples = 2
+    lambda_reg = 0.5
+    number_of_samples = 4
     T = 15
-
-    ground_truths = [x_0_gt]
+    x_0_gt = np.array([-0.5, -0.2], dtype=float)
+    ground_truths = [np.copy(x_0_gt)]
     observations = []
-    belief_means, belief_covs = [], []
-
+    bmdp = BMDPscenaraio(x_0_gt,np.copy(initial_belief_mean), np.copy(initial_belief_cov), np.eye(2),
+                                 np.copy(process_cov), beacons, actions, d=1,
+                                 rmin=0.1, lambda_reg=lambda_reg)
+    belief_means, belief_covs = [np.copy(bmdp.belief_mean)], [np.copy(bmdp.belief_cov)]
     for i in range(T):
-        action, val = bmdp.sparse_sampling(x_g, number_of_samples, horizion)
-        ground_truths.append(bmdp.sample_motion_model(action, ground_truths[-1]))
+        action, val = bmdp.sparse_sampling(np.copy(x_g), number_of_samples, horizion,discount_factor=0.9)
+        bmdp.sample_motion_model(action)
+        ground_truths.append(np.copy(bmdp.x_gt))
         obs = bmdp.transit_belief_MDP(action)
         if obs is not None:
             observations.append(obs)
-        belief_means.append(bmdp.belief_mean)
-        belief_covs.append(bmdp.belief_cov)
-
+        belief_means.append(np.copy(bmdp.belief_mean))
+        belief_covs.append(np.copy(bmdp.belief_cov))
+        plt.close()
+    plt.title(f'horizion is {horizion} and lambda is {lambda_reg}')
     plt.scatter(beacons[:, 0], beacons[:, 1], label="beacons", marker='^')
     plt.scatter(x_g[0], x_g[1], label="goal", marker='*')
     plt.scatter(*zip(*ground_truths), label="ground truth")
@@ -133,81 +133,90 @@ def run_simulation():
         plt.scatter(*zip(*observations), label="observations")
     plt.scatter(*zip(*belief_means), label="belief means")
     plt.legend(loc='upper left')
+    for i in range(T+1):
+            plot_cov_ellipse(cov=belief_covs[i], pos=belief_means[i], alpha=0.1)
+    plt.savefig(f'2_c_horizion_{horizion}_lambda_{lambda_reg}.png')
+    plt.show()
 
+##### 2.d.e.f
+def run_plots():
+    beacons = np.array([[0.0, 0.0], [0.0, 4.0], [0.0, 8.0], [4.0, 0.0], [4.0, 4.0], [4.0, 8.0], [8.0, 0.0], [8.0, 4.0], [8.0, 8.0]], dtype=float)
+    initial_belief_mean = np.array([0.0, 0.0], dtype=float)
+    initial_belief_cov = np.eye(2, dtype=float)
+    process_cov = 0.01 * np.eye(2, dtype=float)
+    initial_gt = np.array([-0.5, -0.2], dtype=float)
+    actions = np.array([[1, 0], [-1, 0], [0, 1], [0, -1],
+                        [1 / np.sqrt(2), 1 / np.sqrt(2)], [-1 / np.sqrt(2), 1 / np.sqrt(2)],
+                        [1 / np.sqrt(2), -1 / np.sqrt(2)], [-1 / np.sqrt(2), -1 / np.sqrt(2)], [0, 0]], dtype=float)
+    x_0_gt = np.array([-0.5, -0.2], dtype=float)
+    x_g = np.array([7, 7])
+
+    horizion = 3
+    lambda_reg = 0.5
+    number_of_samples = 4
+    T = 10
+    x_0_gt = np.array([-0.5, -0.2], dtype=float)
+    ground_truths = [np.copy(x_0_gt)]
+    observations = []
+    bmdp = BMDPscenaraio(x_0_gt,np.copy(initial_belief_mean), np.copy(initial_belief_cov), np.eye(2),
+                                 np.copy(process_cov), beacons, actions, d=1,
+                                 rmin=0.1, lambda_reg=lambda_reg)
+    belief_means, belief_covs = [np.copy(bmdp.belief_mean)], [np.copy(bmdp.belief_cov)]
     for i in range(T):
-        plot_cov_ellipse(cov=belief_covs[i], pos=belief_means[i], alpha=0.1)
+        action, val = bmdp.sparse_sampling(np.copy(x_g), number_of_samples, horizion,discount_factor=0.9)
+        bmdp.sample_motion_model(action)
+        ground_truths.append(np.copy(bmdp.x_gt))
+        obs = bmdp.transit_belief_MDP(action)
+        if obs is not None:
+            observations.append(obs)
+        belief_means.append(np.copy(bmdp.belief_mean))
+        belief_covs.append(np.copy(bmdp.belief_cov))
+        plt.close()
+
+    # 2.d --- plots ground truth, beacons
+    plt.title(f'ground truth beacons')
+    plt.scatter(beacons[:, 0], beacons[:, 1], label="beacons", marker='^')
+    plt.scatter(x_g[0], x_g[1], label="goal", marker='*')
+    plt.scatter(*zip(*ground_truths), label="ground truth")
+    plt.legend(loc='upper left')
+    plt.savefig(f'ground_truth_beacons.png')
+    plt.show()
+
+    # 2.e --- plots ground truth, beacons, observations
+    plt.close()
+    plt.title(f'ground truth beacons observation')
+    plt.scatter(beacons[:, 0], beacons[:, 1], label="beacons", marker='^')
+    plt.scatter(x_g[0], x_g[1], label="goal", marker='*')
+    plt.scatter(*zip(*ground_truths), label="ground truth")
+
+    if observations:
+        plt.scatter(*zip(*observations), label="observations")
+    plt.legend(loc='upper left')
+    plt.savefig(f'ground_truth_beacons_observations.png')
+    plt.show()
+
+    # 2.f --- plots ground truth, beacons, belife
+    plt.close()
+    plt.title(f'ground truth beacons belief')
+    plt.scatter(beacons[:, 0], beacons[:, 1], label="beacons", marker='^')
+    plt.scatter(x_g[0], x_g[1], label="goal", marker='*')
+    plt.scatter(*zip(*ground_truths), label="ground truth")
+    plt.scatter(*zip(*belief_means), label="belief means",color='purple')
+    plt.legend(loc='upper left')
+    plt.savefig(f'ground_truth_beacons_belief.png')
     plt.show()
 
 
+
+
+
 if __name__ == '__main__':
-    adjust_params()
-    run_simulation()
 
-    # beacons = np.array([[0.0, 0.0], [0.0, 4.0], [0.0, 8.0], [4.0, 0.0], [4.0, 4.0], [4.0, 8.0], [8.0, 0.0], [8.0, 4.0], [8.0, 8.0]], dtype=float)
-    # initial_belief_mean = np.array([0.0, 0.0], dtype=float)
-    # initial_belief_cov = np.eye(2, dtype=float)
-    # process_cov = 0.01 * np.eye(2, dtype=float)
-    # initial_gt = np.array([-0.5, -0.2], dtype=float)
-    # actions = np.array([[1, 0], [-1, 0], [0, 1], [0, -1],
-    #                 [1/np.sqrt(2), 1/np.sqrt(2)], [-1/np.sqrt(2), 1/np.sqrt(2)], [1/np.sqrt(2), -1/np.sqrt(2)], [-1/np.sqrt(2), -1/np.sqrt(2)], [0, 0]], dtype=float)
-    # bmdp = BMDPscenaraio(initial_belief_mean, initial_belief_cov, np.eye(2), process_cov, beacons, actions, d=1, rmin=0.1, lambda_reg=0.3)
-    # x_0_gt = np.array([-0.5, -0.2], dtype=float)
-    #
-    # # test
-    # # T = 25
-    # # action = np.array([0.5, 0.5])
-    #
-    # # belief_means_x = []
-    # # belief_means_y = []
-    # # belief_covs = []
-    # # bmdp.transit_belief_MDP( action = np.array([0.0, 0.0]))
-    # # for i in range(T):
-    # #     bmdp.transit_belief_MDP(action)
-    # #     belief_means_x.append(bmdp.belief_mean[0])
-    # #     belief_means_y.append(bmdp.belief_mean[1])
-    # #     belief_covs.append(bmdp.belief_cov)
-    #
-    # # plt.scatter(belief_means_x, belief_means_y)
-    # # plt.scatter(beacons[:, 0], beacons[:, 1])
-    # # for i in range(T):
-    # #     plot_cov_ellipse(cov=belief_covs[i],pos=[belief_means_x[i],belief_means_y[i]],alpha=0.1)
-    #
-    # # plt.show()
-    #
-    # # part c + d + e
-    # # x_g = np.random.uniform(0, 8, 2)
-    # x_g = np.array([5, 5])
-    # horizion = 3
-    # number_of_samples = 2
-    # T = 10
-    #
-    # ground_truths = [x_0_gt]
-    # observations = []
-    # belief_means, belief_covs = [], []
-    #
-    # for i in range(T):
-    #     action, val = bmdp.sparse_sampling(x_g, number_of_samples, horizion)
-    #     ground_truths.append(bmdp.sample_motion_model(action, ground_truths[-1]))
-    #     obs = bmdp.transit_belief_MDP(action)
-    #     if obs is not None:
-    #         observations.append(obs)
-    #     belief_means.append(bmdp.belief_mean)
-    #     belief_covs.append(bmdp.belief_cov)
-    #
-    #
-    # plt.scatter(beacons[:, 0], beacons[:, 1], label="beacons", marker='^')
-    # plt.scatter(x_g[0], x_g[1], label="goal", marker='*')
-    # plt.scatter(*zip(*ground_truths), label="ground truth")
-    # if observations:
-    #     plt.scatter(*zip(*observations), label="observations")
-    # plt.scatter(*zip(*belief_means), label="belief means")
-    # plt.legend(loc='upper left')
-    #
-    # for i in range(T):
-    #     plot_cov_ellipse(cov=belief_covs[i], pos=belief_means[i],alpha=0.1)
-    # plt.show()
-    #
-    #
-    #
+    ### 2.b
+    # adjust_params()
 
+    ### 2.c
+    # run_simulation()
 
+    ### 2.d.e.f
+    run_plots()
