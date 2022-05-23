@@ -213,10 +213,10 @@ def run_plots():
 if __name__ == '__main__':
 
     ### 2.b
-    # adjust_params()
+    adjust_params()
 
     ### 2.c
-    # run_simulation()
+    run_simulation()
 
-    ### 2.d.e.f
+    # 2.d.e.f
     run_plots()
