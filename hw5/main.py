@@ -134,7 +134,7 @@ def run_simulation():
     plt.scatter(*zip(*belief_means), label="belief means")
     plt.legend(loc='upper left')
     for i in range(T+1):
-            plot_cov_ellipse(cov=belief_covs[i], pos=belief_means[i], alpha=0.1)
+       /home/orr/Autonomous-Navigaion-and-Peception     plot_cov_ellipse(cov=belief_covs[i], pos=belief_means[i], alpha=0.1)
     plt.savefig(f'2_c_horizion_{horizion}_lambda_{lambda_reg}.png')
     plt.show()
 

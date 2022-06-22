@@ -233,8 +233,6 @@ class PRM(object):
 
     def _nearest_neighbors(self, node:Node) -> list:
 
-        # TODO How do I prevent the passage of an
-        #  edge within an area that must not be crossed?
         min_distance = np.Inf
         nearest_neighbor = []
         for neighbor in self.forest.keys():
@@ -351,16 +349,6 @@ def plot_generatePRM(obstacles_list):
 
 
 if __name__ == '__main__':
-    # define Matplotlib figure and axis
-    # fig, ax = plt.subplots()
-    # ax.plot([0, 10], [0, 10])
-    #
-    # ax.add_patch(Rectangle((1, 1), 2, 6,color='red'))
-    # plt.xlim([X_LIMIT_LEFT, X_LIMIT_RIGHT])
-    # plt.ylim([Y_LIMIT_DOWN, Y_LIMIT_UP])
-    # plt.show()
-    # prm = draw_configurations()
-    # ob = Obstacle(50, 50)
 
     obstacles_list = list()
     # crate obstacles Rectangle
